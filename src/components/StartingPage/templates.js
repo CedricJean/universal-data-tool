@@ -11,22 +11,22 @@ import ThreeDRotation from "@material-ui/icons/ThreeDRotation"
 import OndemandVideoIcon from "@material-ui/icons/OndemandVideo"
 import ContactSupport from "@material-ui/icons/ContactSupport"
 
-export default [
+export const templates = [
   {
     name: "Empty",
     Icon: CropFree,
-    oha: {
+    dataset: {
       interface: {},
-      taskData: [],
+      samples: [],
     },
   },
   {
     name: "Image Segmentation",
     Icon: ImageSearch,
-    oha: {
+    dataset: {
       interface: {
         type: "image_segmentation",
-        availableLabels: ["valid", "invalid"],
+        labels: ["valid", "invalid"],
         regionTypesAllowed: [
           "bounding-box",
           "polygon",
@@ -35,7 +35,7 @@ export default [
           // "pixel-mask"
         ],
       },
-      taskData: [
+      samples: [
         {
           imageUrl:
             "https://s3.amazonaws.com/asset.workaround.online/example-jobs/sticky-notes/image1.jpg",
@@ -50,12 +50,12 @@ export default [
   {
     name: "Image Classification",
     Icon: Image,
-    oha: {
+    dataset: {
       interface: {
         type: "image_classification",
-        availableLabels: ["valid", "invalid"],
+        labels: ["valid", "invalid"],
       },
-      taskData: [
+      samples: [
         {
           imageUrl:
             "https://s3.amazonaws.com/asset.workaround.online/example-jobs/sticky-notes/image1.jpg",
@@ -70,13 +70,13 @@ export default [
   {
     name: "Video Segmentation",
     Icon: OndemandVideoIcon,
-    oha: {
+    dataset: {
       interface: {
         type: "video_segmentation",
-        availableLabels: ["valid", "invalid"],
+        labels: ["valid", "invalid"],
         regionTypesAllowed: ["bounding-box", "polygon", "point"],
       },
-      taskData: [
+      samples: [
         {
           videoUrl:
             "https://s3.amazonaws.com/asset.workaround.online/SampleVideo_1280x720_1mb.mp4",
@@ -87,7 +87,7 @@ export default [
   {
     name: "Data Entry",
     Icon: Edit,
-    oha: {
+    dataset: {
       interface: {
         type: "data_entry",
         description: "# Markdown description here",
@@ -101,7 +101,7 @@ export default [
           ],
         },
       },
-      taskData: [
+      samples: [
         {
           pdfUrl: "https://arxiv.org/pdf/1906.01969.pdf",
         },
@@ -114,7 +114,7 @@ export default [
   {
     name: "Named Entity Recognition",
     Icon: TextFormat,
-    oha: {
+    dataset: {
       interface: {
         type: "text_entity_recognition",
         overlapAllowed: false,
@@ -131,7 +131,7 @@ export default [
           },
         ],
       },
-      taskData: [
+      samples: [
         {
           document:
             "This strainer makes a great hat, I'll wear it while I serve spaghetti!",
@@ -145,12 +145,12 @@ export default [
   {
     name: "Text Classification",
     Icon: ContactSupport,
-    oha: {
+    dataset: {
       interface: {
         type: "text_classification",
         labels: ["positive_sentiment", "negative_sentiment"],
       },
-      taskData: [
+      samples: [
         {
           document: "Wow this is terrible. I hated it.",
         },
@@ -167,12 +167,12 @@ export default [
   {
     name: "Audio Transcription",
     Icon: Audiotrack,
-    oha: {
+    dataset: {
       interface: {
         type: "audio_transcription",
         description: "# Markdown description here",
       },
-      taskData: [
+      samples: [
         {
           audioUrl: "https://html5tutorial.info/media/vincent.mp3",
         },
@@ -182,7 +182,7 @@ export default [
   {
     name: "Composite",
     Icon: Category,
-    oha: {
+    dataset: {
       description: "# Markdown description here",
       interface: {
         type: "composite",
@@ -206,13 +206,13 @@ export default [
             fieldName: "segmentation",
             interface: {
               type: "image_segmentation",
-              availableLabels: ["group text"],
+              labels: ["group text"],
               regionTypesAllowed: ["bounding-box"],
             },
           },
         ],
       },
-      taskData: [
+      samples: [
         {
           imageUrl:
             "https://s3.amazonaws.com/asset.workaround.online/example-jobs/sticky-notes/image1.jpg",
@@ -227,11 +227,20 @@ export default [
   {
     name: "3D Bounding Box",
     Icon: ThreeDRotation,
-    oha: {
+    dataset: {
       interface: {
         type: "3d_bounding_box",
         description: "3D Bounding Box",
       },
+      samples: [{}],
     },
   },
 ]
+
+export const templateMap = templates.reduce((acc, t) => {
+  acc[t.name] = t
+  acc[t.dataset.interface.type] = t
+  return acc
+}, {})
+
+export default templates

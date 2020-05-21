@@ -1,56 +1,45 @@
 // @flow
-import React, { useState, useMemo, useEffect, useCallback } from "react"
+import React, { useState, useRef, useEffect, useCallback } from "react"
 import { HeaderContext } from "../Header"
 import StartingPage from "../StartingPage"
-import OHAEditor from "../OHAEditor"
-import { makeStyles } from "@material-ui/core/styles"
+import DatasetEditor from "../DatasetEditor"
 import ErrorToasts from "../ErrorToasts"
 import useErrors from "../../utils/use-errors.js"
-import useLocalStorage from "../../utils/use-local-storage.js"
 import useFileHandler from "../../utils/file-handlers"
 import download from "in-browser-download"
 import toUDTCSV from "../../utils/to-udt-csv.js"
 import { setIn } from "seamless-immutable"
-import ErrorBoundary from "../ErrorBoundary"
+import AppErrorBoundary from "../AppErrorBoundary"
 import useEventCallback from "use-event-callback"
-
-const useStyles = makeStyles({
-  empty: {
-    textAlign: "center",
-    padding: 100,
-    color: "#666",
-    fontSize: 28,
-  },
-})
-
+import usePreventNavigation from "../../utils/use-prevent-navigation"
+import { FileContext } from "../FileContext"
 const randomId = () => Math.random().toString().split(".")[1]
 
 export default () => {
-  const c = useStyles()
   const {
     file,
-    changeFile,
+    setFile,
     openFile,
     openUrl,
     makeSession,
     recentItems,
     changeRecentItems,
   } = useFileHandler()
-  const [errors, addError] = useErrors()
+  usePreventNavigation(Boolean(file))
+  const [errors] = useErrors()
 
   const [selectedBrush, setSelectedBrush] = useState("complete")
-
   const onCreateTemplate = useEventCallback((template) => {
-    changeFile({
+    setFile({
       fileName: "unnamed",
-      content: template.oha,
+      content: template.dataset,
       id: randomId(),
       mode: "local-storage",
     })
   })
 
-  const openRecentItem = useEventCallback((item) => changeFile(item))
-  const onClickHome = useEventCallback(() => changeFile(null))
+  const openRecentItem = useEventCallback((item) => setFile(item))
+  const onClickHome = useEventCallback(() => setFile(null))
   const onDownload = useEventCallback((format) => {
     if (!file) return
     const outputName = (file.sessionId || file.fileName) + ".udt." + format
@@ -64,72 +53,80 @@ export default () => {
   const inSession = file && file.mode === "server"
   const [sessionBoxOpen, changeSessionBoxOpen] = useState(false)
 
-  const onJoinSession = useCallback(async (sessionName) => {
-    await openUrl(sessionName)
-  }, [])
+  const onJoinSession = useCallback(
+    async (sessionName) => {
+      await openUrl(sessionName)
+    },
+    [openUrl]
+  )
 
   const onLeaveSession = useEventCallback(() =>
-    changeFile({
+    setFile({
       ...file,
       mode: "local-storage",
-      id: randomId(),
-      fileName: "unnamed",
+      fileName: file.fileName || `copy_of_${file.id}`,
     })
   )
 
+  const onChangeDataset = useEventCallback((newOHA) => {
+    setFile(setIn(file, ["content"], newOHA))
+  })
+
   return (
     <>
-      <HeaderContext.Provider
-        value={{
-          title: file
-            ? file.mode === "local-storage"
-              ? file.fileName
-              : file.url
-            : "unnamed",
-          recentItems,
-          changeRecentItems,
-          onClickTemplate: onCreateTemplate,
-          onClickHome,
-          onOpenFile: openFile,
-          onOpenRecentItem: openRecentItem,
-          inSession,
-          sessionBoxOpen,
-          changeSessionBoxOpen,
-          onJoinSession,
-          onLeaveSession,
-          onCreateSession: makeSession,
-          fileOpen: Boolean(file),
-          onDownload,
-          onChangeSelectedBrush: setSelectedBrush,
-          selectedBrush,
-        }}
-      >
-        {!file ? (
-          <StartingPage
-            onFileDrop={openFile}
-            onOpenTemplate={onCreateTemplate}
-            recentItems={recentItems}
-            onOpenRecentItem={openRecentItem}
-            onClickOpenSession={() => changeSessionBoxOpen(true)}
-          />
-        ) : (
-          <ErrorBoundary>
-            <OHAEditor
-              key={file.id}
-              {...file}
-              selectedBrush={selectedBrush}
-              inSession={inSession}
-              oha={file.content}
-              onChangeFileName={(newName) => {
-                changeFile(setIn(file, ["fileName"], newName))
-              }}
-              onChangeOHA={(newOHA) => {
-                changeFile(setIn(file, ["content"], newOHA))
-              }}
+      <FileContext.Provider value={{ file, setFile }}>
+        <HeaderContext.Provider
+          value={{
+            title: file
+              ? file.mode === "local-storage"
+                ? file.fileName
+                : file.url
+              : "unnamed",
+            recentItems,
+            changeRecentItems,
+            onClickTemplate: onCreateTemplate,
+            onClickHome,
+            onOpenFile: openFile,
+            onOpenRecentItem: openRecentItem,
+            inSession,
+            sessionBoxOpen,
+            changeSessionBoxOpen,
+            onJoinSession,
+            onLeaveSession,
+            onCreateSession: makeSession,
+            fileOpen: Boolean(file),
+            onDownload,
+            onChangeSelectedBrush: setSelectedBrush,
+            selectedBrush,
+            isWelcomePage: !file,
+          }}
+        >
+          {!file ? (
+            <StartingPage
+              onFileDrop={openFile}
+              onOpenTemplate={onCreateTemplate}
+              recentItems={recentItems}
+              onOpenRecentItem={openRecentItem}
+              onClickOpenSession={() => changeSessionBoxOpen(true)}
             />
-          </ErrorBoundary>
-        )}
-      </HeaderContext.Provider>
+          ) : (
+            <AppErrorBoundary>
+              <DatasetEditor
+                file={file}
+                key={file.id}
+                {...file}
+                selectedBrush={selectedBrush}
+                inSession={inSession}
+                dataset={file.content}
+                onChangeDataset={onChangeDataset}
+                onChangeFile={setFile}
+                authConfig
+                recentItems={recentItems}
+              />
+            </AppErrorBoundary>
+          )}
+        </HeaderContext.Provider>
+      </FileContext.Provider>
       <ErrorToasts errors={errors} />
     </>
   )

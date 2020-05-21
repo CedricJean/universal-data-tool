@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from "react"
 import DataTable from "react-data-table-component"
-import Button from "@material-ui/core/Button"
 import IconButton from "@material-ui/core/IconButton"
 import EditIcon from "@material-ui/icons/Edit"
 import DeleteIcon from "@material-ui/icons/Delete"
@@ -20,9 +19,23 @@ import ImportIcon from "@material-ui/icons/Publish"
 import ImportPage from "../ImportPage"
 import TransformPage from "../TransformPage"
 import useIsDesktop from "../../utils/use-is-desktop.js"
+import * as colors from "@material-ui/core/colors"
 
 const Container = styled("div")({
   padding: 16,
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  boxSizing: "border-box",
+})
+
+const SampleCounter = styled("div")({
+  fontSize: 14,
+  color: colors.grey[600],
+  display: "flex",
+  justifyContent: "flex-end",
+  alignItems: "center",
+  flexGrow: 1,
 })
 
 const ExpandedRowContainer = styled("div")({
@@ -41,19 +54,19 @@ const ExpandedRowTitle = styled("div")({
 const ExpandedRowCode = styled("pre")({ whiteSpace: "pre-wrap", fontSize: 11 })
 
 const ExpandedRow = ({ data }) => {
-  const { _output, ...input } = data
+  const { annotation, ...input } = data
 
   return (
     <ExpandedRowContainer>
       <Grid spacing={2} container>
         <Grid item xs={6}>
-          <ExpandedRowTitle>taskData[{data.index}]:</ExpandedRowTitle>
+          <ExpandedRowTitle>samples[{data.index}]:</ExpandedRowTitle>
           <ExpandedRowCode>{JSON.stringify(input, null, "  ")}</ExpandedRowCode>
         </Grid>
         <Grid item xs={6}>
-          <ExpandedRowTitle>taskOutput[{data.index}]:</ExpandedRowTitle>
+          <ExpandedRowTitle>samples[{data.index}].annotation:</ExpandedRowTitle>
           <ExpandedRowCode>
-            {JSON.stringify(_output, null, "  ")}
+            {JSON.stringify(annotation, null, "  ")}
           </ExpandedRowCode>
         </Grid>
       </Grid>
@@ -62,15 +75,19 @@ const ExpandedRow = ({ data }) => {
 }
 
 export default ({
-  oha,
+  file,
+  dataset,
   openSampleInputEditor,
   openSampleLabelEditor,
   deleteSample,
-  onChangeOHA,
+  onChangeDataset,
+  onChangeFile,
+  authConfig,
+  user,
 }) => {
   const isDesktop = useIsDesktop()
   const [currentTab, changeTabState] = useState(
-    (oha.taskData || []).length === 0
+    (dataset.samples || []).length === 0
       ? "import"
       : window.localStorage.lastSampleTab || "grid"
   )
@@ -79,7 +96,7 @@ export default ({
     window.localStorage.lastSampleTab = tab
   }
   const columns = useMemo(() => {
-    if (!oha.taskData) return []
+    if (!dataset.samples) return []
     const columns = [
       {
         name: "Index",
@@ -88,7 +105,7 @@ export default ({
       },
     ]
     const knownKeys = new Set()
-    for (const td of oha.taskData) {
+    for (const td of dataset.samples) {
       for (const key in td) {
         if (!knownKeys.has(key)) {
           columns.push({
@@ -127,72 +144,87 @@ export default ({
       ),
     })
     return columns
-  }, [oha.taskData, oha.taskOutput])
+  }, [
+    dataset.samples,
+    deleteSample,
+    openSampleInputEditor,
+    openSampleLabelEditor,
+  ])
 
   const data = useMemo(() => {
-    if (!oha.taskData) return []
-    return oha.taskData.map((td, i) => ({
+    if (!dataset.samples) return []
+    return dataset.samples.map((td, i) => ({
       ...td,
-      _output: oha.taskOutput && oha.taskOutput[i] ? oha.taskOutput[i] : {},
       index: i,
     }))
-  }, [oha.taskData, oha.taskOutput])
+  }, [dataset.samples])
   return (
     <Container>
-      <Tabs value={currentTab} onChange={(e, newTab) => changeTab(newTab)}>
-        <Tab icon={<ImportIcon />} label="Import" value="import" />
-        <Tab icon={<SlideshowIcon />} label="Transform" value="transform" />
-        <Tab icon={<AppsIcon />} label="Grid" value="grid" />
-        <Tab icon={<TableChartIcon />} label="Table" value="table" />
-      </Tabs>
+      <Box display="flex">
+        <Tabs value={currentTab} onChange={(e, newTab) => changeTab(newTab)}>
+          <Tab icon={<ImportIcon />} label="Import" value="import" />
+          <Tab icon={<SlideshowIcon />} label="Transform" value="transform" />
+          <Tab icon={<AppsIcon />} label="Grid" value="grid" />
+          <Tab icon={<TableChartIcon />} label="Table" value="table" />
+        </Tabs>
+        <SampleCounter>
+          {(dataset.samples || []).length} Samples
+          <br />
+          {(dataset.samples || []).filter((s) => s.annotation).length} Labels
+        </SampleCounter>
+      </Box>
       <Box paddingTop={2} />
-      {currentTab === "import" && (
-        <ImportPage
-          isDesktop={isDesktop}
-          onChangeOHA={(newOHA, shouldViewChange) => {
-            onChangeOHA(newOHA)
-            if (shouldViewChange) {
-              changeTab("grid")
-            }
-          }}
-          oha={oha}
-        />
-      )}
-      {currentTab === "transform" && (
-        <TransformPage
-          isDesktop={isDesktop}
-          oha={oha}
-          onChangeOHA={(oha, shouldViewChange) => {
-            onChangeOHA(oha)
-            if (shouldViewChange) {
-              changeTab("grid")
-            }
-          }}
-        />
-      )}
-      {currentTab === "grid" && (
-        <SampleGrid
-          count={(oha.taskData || []).length}
-          taskData={oha.taskData || []}
-          completed={(oha.taskOutput || []).map(Boolean)}
-          onClick={(sampleIndex) => {
-            openSampleLabelEditor(sampleIndex)
-          }}
-        />
-      )}
-      {currentTab === "table" && (
-        <DataTable
-          title="Samples"
-          expandableRowsComponent={<ExpandedRow />}
-          expandableRows
-          dense
-          columns={columns}
-          data={data}
-          pagination
-          paginationPerPage={10}
-          paginationRowsPerPageOptions={[10, 20, 25, 50, 100, 200]}
-        />
-      )}
+      <Box flexGrow={1}>
+        {currentTab === "import" && (
+          <ImportPage
+            file={file}
+            isDesktop={isDesktop}
+            onChangeFile={(file) => onChangeFile(file)}
+            onImportPageShouldExit={() => changeTab("grid")}
+            onChangeDataset={(newOHA) => onChangeDataset(newOHA)}
+            dataset={dataset}
+            authConfig={authConfig}
+            user={user}
+          />
+        )}
+        {currentTab === "transform" && (
+          <TransformPage
+            isDesktop={isDesktop}
+            dataset={dataset}
+            onChangeDataset={(dataset, shouldViewChange) => {
+              onChangeDataset(dataset)
+              if (shouldViewChange) {
+                changeTab("grid")
+              }
+            }}
+          />
+        )}
+        {currentTab === "grid" && (
+          <SampleGrid
+            count={(dataset.samples || []).length}
+            samples={dataset.samples || []}
+            completed={(dataset.samples || []).map((s) =>
+              Boolean(s.annotation)
+            )}
+            onClick={(sampleIndex) => {
+              openSampleLabelEditor(sampleIndex)
+            }}
+          />
+        )}
+        {currentTab === "table" && (
+          <DataTable
+            title="Samples"
+            expandableRowsComponent={<ExpandedRow />}
+            expandableRows
+            dense
+            columns={columns}
+            data={data}
+            pagination
+            paginationPerPage={10}
+            paginationRowsPerPageOptions={[10, 20, 25, 50, 100, 200]}
+          />
+        )}
+      </Box>
     </Container>
   )
 }

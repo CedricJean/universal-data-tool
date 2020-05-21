@@ -11,17 +11,20 @@ import DataEntry from "../DataEntry"
 import EmptySampleContainer from "../EmptySampleContainer"
 import Composite from "../Composite"
 import BadOHA from "../BadOHA"
+import Button from "@material-ui/core/Button"
 
 export const UniversalDataViewer = ({
-  oha,
+  dataset,
   onExit,
   hideHeader,
   hideDescription,
   datasetName,
   requireCompleteToPressNext,
   onSaveTaskOutputItem,
+  height,
+  onClickSetup,
 }) => {
-  // TODO type check w/ superstruct against oha
+  // TODO type check w/ superstruct against dataset
   const containerProps = useMemo(
     () => ({
       hideHeader,
@@ -29,35 +32,47 @@ export const UniversalDataViewer = ({
       datasetName,
       requireCompleteToPressNext,
       onExit,
+      height,
     }),
     [
       hideHeader,
       hideDescription,
       requireCompleteToPressNext,
       datasetName,
+      height,
       onExit,
     ]
   )
 
-  if (!oha) {
+  if (!dataset || !dataset.interface.type) {
     return (
       <BadOHA
-        title="Null OHA"
-        description="Your OHA file isn't defined for some reason."
+        title="Set up your project to begin labeling"
+        description={
+          <p>
+            This interface hasn't been set up properly, try selecting an
+            interface in the "Setup" tab.
+            <br />
+            <br />
+            <Button color="primary" variant="contained" onClick={onClickSetup}>
+              Setup Project
+            </Button>
+          </p>
+        }
       />
     )
   }
 
-  if (!oha.taskData || oha.taskData.length === 0) {
+  if (!dataset.samples || dataset.samples.length === 0) {
     return <EmptySampleContainer />
   }
 
-  switch (oha.interface.type) {
+  switch (dataset.interface.type) {
     case "data_entry":
       return (
         <DataEntry
           containerProps={containerProps}
-          {...oha}
+          {...dataset}
           onSaveTaskOutputItem={onSaveTaskOutputItem}
           onExit={onExit}
         />
@@ -66,7 +81,7 @@ export const UniversalDataViewer = ({
       return (
         <TextClassification
           containerProps={containerProps}
-          {...oha}
+          {...dataset}
           onSaveTaskOutputItem={onSaveTaskOutputItem}
           onExit={onExit}
         />
@@ -75,7 +90,7 @@ export const UniversalDataViewer = ({
       return (
         <TextEntityRecognition
           containerProps={containerProps}
-          {...oha}
+          {...dataset}
           onSaveTaskOutputItem={onSaveTaskOutputItem}
           onExit={onExit}
         />
@@ -84,7 +99,7 @@ export const UniversalDataViewer = ({
       return (
         <ImageSegmentation
           containerProps={containerProps}
-          {...oha}
+          {...dataset}
           onExit={onExit}
           onSaveTaskOutputItem={onSaveTaskOutputItem}
         />
@@ -93,7 +108,7 @@ export const UniversalDataViewer = ({
       return (
         <ImageClassification
           containerProps={containerProps}
-          {...oha}
+          {...dataset}
           onExit={onExit}
           onSaveTaskOutputItem={onSaveTaskOutputItem}
         />
@@ -102,7 +117,7 @@ export const UniversalDataViewer = ({
       return (
         <VideoSegmentation
           containerProps={containerProps}
-          {...oha}
+          {...dataset}
           onExit={onExit}
           onSaveTaskOutputItem={onSaveTaskOutputItem}
         />
@@ -111,8 +126,8 @@ export const UniversalDataViewer = ({
       return (
         <Composite
           containerProps={containerProps}
-          {...oha}
-          oha={oha}
+          {...dataset}
+          dataset={dataset}
           onSaveTaskOutputItem={onSaveTaskOutputItem}
           onExit={onExit}
         />
@@ -121,13 +136,13 @@ export const UniversalDataViewer = ({
       return (
         <AudioTranscription
           containerProps={containerProps}
-          {...oha}
+          {...dataset}
           onSaveTaskOutputItem={onSaveTaskOutputItem}
           onExit={onExit}
         />
       )
     default:
-      return `"${oha.interface.type}" not supported`
+      return `"${dataset.interface.type}" not supported`
   }
 }
 

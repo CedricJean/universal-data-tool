@@ -4,8 +4,6 @@ import React, { useState, useEffect, useMemo } from "react"
 import useEventCallback from "use-event-callback"
 import { styled } from "@material-ui/core/styles"
 import Button from "@material-ui/core/Button"
-import CheckBoxIcon from "@material-ui/icons/CheckBox"
-import CheckBoxOutlineBlankIcon from "@material-ui/icons/CheckBoxOutlineBlank"
 import * as colors from "@material-ui/core/colors"
 import Checkbox from "@material-ui/core/Checkbox"
 import without from "lodash/without"
@@ -32,17 +30,25 @@ const getRandomColor = (label) => {
   return brightColors[hashInt % brightColors.length]
 }
 
-const Container = styled("div")({ maxWidth: "100vw" })
+const Container = styled("div")({
+  maxWidth: "100vw",
+  display: "flex",
+  flexDirection: "column",
+})
 
 const ImageContainer = styled("div")({
-  maxHeight: "50vh",
+  position: "relative",
+  display: "flex",
+  flexGrow: 1,
 })
 
 const Image = styled("img")({
   display: "inline-block",
+  position: "absolute",
+  left: 0,
+  top: 0,
   width: "100%",
   height: "100%",
-  maxHeight: "50vh",
   objectFit: "contain",
 })
 
@@ -50,6 +56,7 @@ const Nav = styled("div")({
   display: "flex",
   justifyContent: "center",
   marginTop: 4,
+  flexShrink: 0,
 })
 const NavItem = styled("div")({
   backgroundColor: "#000",
@@ -73,6 +80,7 @@ const ButtonsContainer = styled("div")({
   paddingRight: 50,
   marginTop: 8,
   textAlign: "center",
+  flexShrink: 0,
 })
 
 const CheckButton = styled(Button)({
@@ -88,28 +96,39 @@ const [emptyObj, emptyArr] = [{}, []]
 export default ({
   sampleIndex: globalSampleIndex,
   interface: iface,
-  taskData = emptyArr,
-  taskOutput = emptyObj,
+  samples = emptyArr,
   containerProps = emptyObj,
   onSaveTaskOutputItem,
 }) => {
+  // TODO remove legacy "availableLabels" support
+  if (iface.availableLabels && !iface.labels) {
+    iface.labels = iface.availableLabels
+  }
+
+  if (!iface.labels)
+    throw new Error("No labels defined. Add some labels in Setup to continue.")
   const [sampleIndex, changeSampleIndex] = useState(0)
   const [enlargedLabel, changeEnlargedLabel] = useState(null)
   const [currentOutput, changeCurrentOutput] = useState(emptyArr)
   const labels = useMemo(
     () =>
-      iface.availableLabels.map((l) =>
+      iface.labels.map((l) =>
         typeof l === "string" ? { id: l, description: l } : l
       ),
-    [iface.availableLabels]
+    [iface.labels]
   )
 
-  const onDone = useEventCallback((newOutput) => {
+  const onDone = useEventCallback(() => {
     if (containerProps.onExit) containerProps.onExit()
+  })
+  const onNextNoSave = useEventCallback(() => {
+    if (containerProps.onExit) {
+      containerProps.onExit("go-to-next")
+    }
   })
   const onNext = useEventCallback((newOutput) => {
     onSaveTaskOutputItem(sampleIndex, newOutput || currentOutput)
-    if (sampleIndex !== taskData.length - 1) {
+    if (sampleIndex !== samples.length - 1) {
       changeSampleIndex(sampleIndex + 1)
     } else {
       if (containerProps.onExit) containerProps.onExit("go-to-next")
@@ -139,7 +158,7 @@ export default ({
       if (iface.allowMultiple) {
         newOutput = currentOutput.concat([label.id])
       } else {
-        newOutput = [label.id]
+        newOutput = label.id
       }
     }
 
@@ -150,11 +169,11 @@ export default ({
   })
 
   useEffect(() => {
-    let newOutput = (taskOutput || [])[sampleIndex]
+    let newOutput = samples[sampleIndex].annotation
     if (!newOutput) newOutput = []
     if (typeof newOutput === "string") newOutput = [newOutput]
     changeCurrentOutput(newOutput)
-  }, [sampleIndex, globalSampleIndex])
+  }, [sampleIndex, globalSampleIndex, samples])
 
   const [hotkeyMap, labelKeyMap] = useMemo(() => {
     const hotkeyMap = {
@@ -175,7 +194,7 @@ export default ({
       labelKeyMap[label.id] = nextAvailableLetter
     }
     return [hotkeyMap, labelKeyMap]
-  }, [labels])
+  }, [labels, onClickLabel, onDone, onNext, onPrev])
 
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -191,18 +210,23 @@ export default ({
   }, [hotkeyMap])
 
   return (
-    <Container>
+    <Container
+      style={{
+        height: containerProps.height || "calc(100% - 70px)",
+        minHeight: 600,
+      }}
+    >
       <ImageContainer>
-        <Image src={taskData[sampleIndex].imageUrl} />
+        <Image src={samples[sampleIndex].imageUrl} />
       </ImageContainer>
       <Nav>
         <NavItem>
           <NavButton onClick={onPrev}>Prev (backspace)</NavButton>
         </NavItem>
-        {taskData.length > 1 ? (
+        {samples.length > 1 ? (
           <NavItem>
             <span>
-              ({sampleIndex + 1}/{taskData.length})
+              ({sampleIndex + 1}/{samples.length})
             </span>
           </NavItem>
         ) : globalSampleIndex !== undefined ? (
@@ -211,7 +235,7 @@ export default ({
           </NavItem>
         ) : null}
         <NavItem>
-          <NavButton onClick={onNext}>Next (space)</NavButton>
+          <NavButton onClick={onNextNoSave}>Next (space)</NavButton>
         </NavItem>
         <NavItem>
           <NavButton onClick={onDone}>Done (enter)</NavButton>

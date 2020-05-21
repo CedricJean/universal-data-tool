@@ -12,7 +12,7 @@ storiesOf("UniversalDataViewer", module)
     <UniversalDataViewer
       onSaveTaskOutputItem={action("onSaveTaskOutputItem")}
       hideHeader
-      oha={{
+      dataset={{
         interface: {
           type: "text_entity_recognition",
           description: "Label words or phrases as food or hat.",
@@ -30,18 +30,16 @@ storiesOf("UniversalDataViewer", module)
             },
           ],
         },
-        taskData: [
+        samples: [
           {
             document:
               "This strainer makes a great hat, I'll wear it while I serve spaghetti!",
-          },
-        ],
-        taskOutput: [
-          {
-            entities: [
-              { label: "hat", text: "strainer", start: 5, end: 13 },
-              { label: "food", text: "spaghetti", start: 59, end: 68 },
-            ],
+            annotation: {
+              entities: [
+                { label: "hat", text: "strainer", start: 5, end: 13 },
+                { label: "food", text: "spaghetti", start: 59, end: 68 },
+              ],
+            },
           },
         ],
       }}
@@ -51,7 +49,7 @@ storiesOf("UniversalDataViewer", module)
     <UniversalDataViewer
       onSaveTaskOutputItem={action("onSaveTaskOutputItem")}
       hideHeader
-      oha={{
+      dataset={{
         interface: {
           type: "data_entry",
           description: "",
@@ -89,15 +87,13 @@ storiesOf("UniversalDataViewer", module)
             ],
           },
         },
-        taskData: [
+        samples: [
           {
             description: "Cucumber",
-          },
-        ],
-        taskOutput: [
-          {
-            group_letter: "A",
-            feedback: "this is some feedback",
+            annotation: {
+              group_letter: "A",
+              feedback: "this is some feedback",
+            },
           },
         ],
       }}
@@ -107,17 +103,17 @@ storiesOf("UniversalDataViewer", module)
     <UniversalDataViewer
       onSaveTaskOutputItem={action("onSaveTaskOutputItem")}
       hideHeader
-      oha={{
+      dataset={{
         interface: {
           type: "audio_transcription",
           description: "",
         },
-        taskData: [
+        samples: [
           {
             audioUrl: "https://html5tutorial.info/media/vincent.mp3",
+            annotation: "starry starry night",
           },
         ],
-        taskOutput: ["starry starry night"],
       }}
     />
   ))
@@ -125,7 +121,7 @@ storiesOf("UniversalDataViewer", module)
     <UniversalDataViewer
       onSaveTaskOutputItem={action("onSaveTaskOutputItem")}
       hideHeader
-      oha={{
+      dataset={{
         interface: {
           type: "composite",
           fields: [
@@ -153,16 +149,21 @@ storiesOf("UniversalDataViewer", module)
               fieldName: "Field2",
               interface: {
                 type: "image_segmentation",
-                availableLabels: ["valid", "invalid"],
+                labels: ["valid", "invalid"],
                 regionTypesAllowed: ["bounding-box"],
               },
             },
           ],
         },
-        taskData: [
+        samples: [
           {
             imageUrl:
               "https://s3.amazonaws.com/asset.workaround.online/example-jobs/eng_diagram1.png",
+            annotation: {
+              Field1: {
+                question1: "Included output",
+              },
+            },
           },
           {
             imageUrl:
@@ -173,15 +174,6 @@ storiesOf("UniversalDataViewer", module)
               "https://s3.amazonaws.com/asset.workaround.online/example-jobs/eng_diagram3.png",
           },
         ],
-        taskOutput: [
-          {
-            Field1: {
-              question1: "Included output",
-            },
-          },
-          null,
-          null,
-        ],
       }}
     />
   ))
@@ -189,7 +181,7 @@ storiesOf("UniversalDataViewer", module)
     <UniversalDataViewer
       onSaveTaskOutputItem={action("onSaveTaskOutputItem")}
       hideHeader
-      oha={{
+      dataset={{
         interface: {
           type: "composite",
           fields: [
@@ -235,17 +227,14 @@ storiesOf("UniversalDataViewer", module)
             },
           ],
         },
-        taskData: [
+        samples: [
           {
             customId: "images/img1.jpg",
             imageUrl:
               "http://localhost:3702/app/api/download/63d525ea-cad4-495b-8c5d-eb44173a4238",
           },
         ],
-        examples: null,
-        delivery: {
-          targetAccuracy: 0.93,
-        },
       }}
     />
   ))
+  .add("Undefined Interface Type", () => <UniversalDataViewer />)

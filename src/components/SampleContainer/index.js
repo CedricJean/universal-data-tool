@@ -5,21 +5,12 @@ import { makeStyles } from "@material-ui/core"
 import Grid from "@material-ui/core/Grid"
 import Button from "@material-ui/core/Button"
 import ReactMarkdown from "react-markdown"
-import AppBar from "@material-ui/core/AppBar"
-import Toolbar from "@material-ui/core/Toolbar"
-import IconButton from "@material-ui/core/IconButton"
-import MenuIcon from "@material-ui/icons/Menu"
-import ScatterPlotIcon from "@material-ui/icons/ScatterPlot"
 import RightIcon from "@material-ui/icons/KeyboardArrowRight"
 import LeftIcon from "@material-ui/icons/KeyboardArrowLeft"
-import InnerCircleIcon from "@material-ui/icons/RadioButtonChecked"
 import CircleIcon from "@material-ui/icons/RadioButtonUnchecked"
 import CheckCircle from "@material-ui/icons/CheckCircle"
-import Typography from "@material-ui/core/Typography"
-import GithubIcon from "../Header/GithubIcon.js"
 import * as colors from "@material-ui/core/colors"
 import Drawer from "@material-ui/core/Drawer"
-import Divider from "@material-ui/core/Divider"
 import List from "@material-ui/core/List"
 import ListItem from "@material-ui/core/ListItem"
 import ListItemIcon from "@material-ui/core/ListItemIcon"
@@ -92,11 +83,13 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 export const SampleContainer = ({
-  hideDescription: defaultHideDescription = false,
+  hideDescription: defaultHideDescription = window.localStorage.getItem(
+    "hideDescription"
+  ) === '"true"',
   lastSampleExitText,
   onExit,
   requireCompleteToPressNext = false,
-  taskData,
+  samples,
   minContentHeight,
   currentSampleIndex,
   totalSamples,
@@ -106,9 +99,17 @@ export const SampleContainer = ({
   children,
 }) => {
   const c = useStyles()
-  const [hideDescription, changeHideDescription] = useState(
+  const [hideDescription, changeHideDescriptionState] = useState(
     defaultHideDescription
   )
+  const changeHideDescription = (hide) => {
+    window.localStorage.setItem(
+      "hideDescription",
+      `"${hide ? "true" : "false"}"`
+    )
+    changeHideDescriptionState(hide)
+  }
+
   const [sampleDrawerOpen, changeSampleDrawerOpen] = useState(false)
   return (
     <>

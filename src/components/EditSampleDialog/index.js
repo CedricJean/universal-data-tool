@@ -14,13 +14,13 @@ export default ({ open, sampleIndex, sampleInput, onChange, onClose }) => {
       changeText(newText)
       changeError(null)
     }
-  }, [sampleIndex])
+  }, [sampleIndex, sampleInput, text])
 
   return (
     <SimpleDialog
       open={open}
       onClose={onClose}
-      title={`taskData[${sampleIndex}]`}
+      title={`samples[${sampleIndex}]`}
     >
       <AceEditor
         theme="github"

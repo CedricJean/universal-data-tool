@@ -15,19 +15,19 @@ storiesOf("ImageClassification", module)
         interface: {
           type: "image_segmentation",
           description: "# Title\n\nLowercase",
-          availableLabels: ["valid", "invalid"],
+          labels: ["valid", "invalid"],
         },
-        taskData: [
+        samples: [
           {
             imageUrl:
               "https://s3.amazonaws.com/asset.workaround.online/example-jobs/sticky-notes/image1.jpg",
+            annotation: "valid",
           },
           {
             imageUrl:
               "https://s3.amazonaws.com/asset.workaround.online/example-jobs/sticky-notes/image2.jpg",
           },
         ],
-        taskOutput: ["valid", null],
       }}
     />
   ))
@@ -38,20 +38,20 @@ storiesOf("ImageClassification", module)
         interface: {
           type: "image_segmentation",
           description: "# Title\n\nLowercase",
-          availableLabels: ["valid", "invalid"],
+          labels: ["valid", "invalid"],
           allowMultiple: true,
         },
-        taskData: [
+        samples: [
           {
             imageUrl:
               "https://s3.amazonaws.com/asset.workaround.online/example-jobs/sticky-notes/image1.jpg",
+            annotation: "valid",
           },
           {
             imageUrl:
               "https://s3.amazonaws.com/asset.workaround.online/example-jobs/sticky-notes/image2.jpg",
           },
         ],
-        taskOutput: ["valid", null],
       }}
     />
   ))

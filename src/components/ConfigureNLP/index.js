@@ -4,16 +4,18 @@ import { setIn } from "seamless-immutable"
 
 const form = {
   questions: [
-    {
-      name: "description",
-      title: "Description",
-      type: "multiline-text",
-    },
-    {
-      name: "overlapAllowed",
-      title: "Overlap Allowed",
-      type: "boolean",
-    },
+    // TODO uncomment when description can be seen in the interface somewhere
+    // {
+    //   name: "description",
+    //   title: "Description",
+    //   type: "multiline-text",
+    // },
+    // TODO enable when we support overlap
+    // {
+    //   name: "overlapAllowed",
+    //   title: "Overlap Allowed",
+    //   type: "boolean",
+    // },
     {
       name: "labels",
       title: "Labels",
@@ -41,21 +43,24 @@ const form = {
 }
 
 export default ({ iface, onChange }) => {
-  const defaultAnswers = useMemo(() => ({
-    description: iface.description,
-    overlapAllowed: Boolean(
-      iface.overlapAllowed || iface.overlapAllowed === undefined
-    ),
-    labels: (iface.labels || []).map((column) =>
-      typeof column === "string"
-        ? {
-            id: column,
-            displayName: column,
-            description: column,
-          }
-        : column
-    ),
-  }))
+  const defaultAnswers = useMemo(
+    () => ({
+      description: iface.description,
+      overlapAllowed: Boolean(
+        iface.overlapAllowed || iface.overlapAllowed === undefined
+      ),
+      labels: (iface.labels || []).map((column) =>
+        typeof column === "string"
+          ? {
+              id: column,
+              displayName: column,
+              description: column,
+            }
+          : column
+      ),
+    }),
+    [iface]
+  )
   return (
     <Survey
       noActions

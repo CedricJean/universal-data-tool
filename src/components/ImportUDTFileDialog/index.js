@@ -1,6 +1,6 @@
 // @flow weak
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import SimpleDialog from "../SimpleDialog"
 import { styled } from "@material-ui/core/styles"
 import TextAreaWithUpload from "../TextAreaWithUpload"
@@ -33,58 +33,51 @@ const ImportUDTFileDialog = ({ open, onClose, onAddSamples }) => {
       actions={[
         {
           text: "Add Samples",
-          disabled: Boolean(error),
           onClick: () => {
-            let taskData, taskOutput
+            changeError(null)
+            let samples, taskOutput
             try {
-              ;[taskData, taskOutput] = JSON.parse(content).taskData
+              ;[samples, taskOutput] = JSON.parse(content).samples
             } catch (e1) {
               try {
                 const udt = fromUDTCSV(content)
-                ;({ taskData, taskOutput } = udt)
+                ;({ samples, taskOutput } = udt)
               } catch (e2) {
+                console.log({
+                  message: "CSV/JSON Error Stacks",
+                  jsonError: e1.stack,
+                  csvError: e2.stack,
+                })
                 changeError(
                   `JSON did not parse. CSV did not parse.\n\nJSON Error: ${e1.toString()}\nCSV Error: ${e2.toString()}`
                 )
                 return
               }
             }
-            if (!taskData || taskData.length === 0) {
+            if (!samples || samples.length === 0) {
               changeError("No task data found")
               return
             }
-            onAddSamples(taskData, taskOutput)
+            onAddSamples(samples, taskOutput)
           },
         },
       ]}
     >
       <InfoText>
         See the{" "}
-        <a
-          target="_blank"
-          href="https://github.com/UniversalDataTool/udt-format"
-        >
+        <a href="https://github.com/UniversalDataTool/udt-format">
           UDT JSON format
         </a>{" "}
         or the{" "}
-        <a
-          target="_blank"
-          href="https://github.com/UniversalDataTool/udt-format"
-        >
+        <a href="https://github.com/UniversalDataTool/udt-format">
           UDT CSV format
         </a>{" "}
         for formatting details. Or take a look at a{" "}
-        <a
-          target="_blank"
-          href="https://github.com/UniversalDataTool/udt-format/blob/master/SAMPLE.udt.json"
-        >
+        <a href="https://github.com/UniversalDataTool/udt-format/blob/master/SAMPLE.udt.json">
           sample JSON
         </a>{" "}
         or{" "}
-        <a
-          target="_blank"
-          href="https://github.com/UniversalDataTool/udt-format/blob/master/SAMPLE.udt.csv"
-        >
+        <a href="https://github.com/UniversalDataTool/udt-format/blob/master/SAMPLE.udt.csv">
           sample CSV
         </a>{" "}
         file.

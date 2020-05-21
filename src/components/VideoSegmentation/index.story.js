@@ -14,10 +14,10 @@ storiesOf("VideoSegmentation", module).add("Basic", () => (
       interface: {
         type: "image_segmentation",
         description: "# Title\n\nLowercase",
-        availableLabels: ["valid", "invalid"],
+        labels: ["valid", "invalid"],
         regionTypesAllowed: ["bounding-box", "polygon", "point"],
       },
-      taskData: [
+      samples: [
         {
           videoUrl:
             "https://s3.amazonaws.com/asset.workaround.online/SampleVideo_1280x720_1mb.mp4",

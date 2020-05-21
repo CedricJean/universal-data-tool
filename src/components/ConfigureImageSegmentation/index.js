@@ -1,7 +1,6 @@
 // @flow
 import React, { useMemo } from "react"
 import Survey from "material-survey/components/Survey"
-import { styled } from "@material-ui/core/styles"
 import { setIn } from "seamless-immutable"
 
 const form = {
@@ -24,7 +23,7 @@ const form = {
       type: "boolean",
     },
     {
-      name: "availableLabels",
+      name: "labels",
       title: "Available Labels",
       description:
         "If you're labeling regions on an image, these are the allowed classifications or tags.",
@@ -49,12 +48,12 @@ export default ({ iface, onChange }) => {
       ),
       multipleRegionLabels: Boolean(iface.multipleRegionLabels),
       regionTypesAllowed: iface.regionTypesAllowed,
-      availableLabels:
-        (iface.availableLabels || []).map((a) =>
+      labels:
+        (iface.labels || []).map((a) =>
           typeof a === "string" ? { id: a, description: a } : a
         ) || [],
     }),
-    []
+    [iface]
   )
   return (
     <Survey

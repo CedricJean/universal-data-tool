@@ -1,18 +1,12 @@
 // @flow
 
-import React, { useState, useEffect, useMemo } from "react"
-import { makeStyles } from "@material-ui/core/styles"
+import React, { useMemo } from "react"
 import Annotator from "react-image-annotate"
-import isEqual from "lodash/isEqual"
 import useEventCallback from "use-event-callback"
 import {
-  rid,
   convertFromRIARegionFmt,
-  convertToRIARegionFmt,
   convertToRIAKeyframes,
 } from "../../utils/ria-format.js"
-
-const useStyles = makeStyles({})
 
 const regionTypeToTool = {
   "bounding-box": "create-box",
@@ -25,14 +19,11 @@ const [emptyObj, emptyArr] = [{}, []]
 
 export default ({
   interface: iface,
-  taskData = emptyArr,
+  samples = emptyArr,
   taskOutput = emptyObj,
   containerProps = emptyObj,
   onSaveTaskOutputItem,
 }) => {
-  const c = useStyles()
-  const [selectedIndex, changeSelectedIndex] = useState(0)
-
   const { regionTypesAllowed = ["bounding-box"] } = iface
 
   const isClassification = !Boolean(iface.multipleRegionLabels)
@@ -41,20 +32,17 @@ export default ({
     () =>
       isClassification
         ? {
-            regionClsList: (iface.availableLabels || []).map((l) =>
+            regionClsList: (iface.labels || []).map((l) =>
               typeof l === "string" ? l : l.id
             ),
           }
         : {
-            regionTagList: (iface.availableLabels || []).map((l) =>
+            regionTagList: (iface.labels || []).map((l) =>
               typeof l === "string" ? l : l.id
             ),
           },
-    [isClassification]
+    [isClassification, iface.labels]
   )
-
-  const multipleRegions =
-    iface.multipleRegions || iface.multipleRegions === undefined
 
   const onExit = useEventCallback((output) => {
     const newKeyframes = {}
@@ -76,15 +64,21 @@ export default ({
   )
 
   // TODO fix by adding some way of going to the "next" video
-  if (taskData.length > 1) {
+  if (samples.length > 1) {
     return "Video segmentation is currently limited to only a single video per selection"
   }
 
-  if (taskData.length === 0) return "taskData[0] with videoUrl is required"
-  if (!taskData[0].videoUrl) return "taskData[0] must have videoUrl"
+  if (samples.length === 0) throw new Error("No sample data provided selected")
+  if (!samples[0].videoUrl) throw new Error("Sample must have videoUrl")
 
   return (
-    <div style={{ height: "calc(100vh - 70px)" }}>
+    <div
+      style={{
+        height: containerProps.height || "calc(100vh - 70px)",
+        width: "100%",
+        minHeight: 600,
+      }}
+    >
       <Annotator
         taskDescription={iface.description}
         {...labelProps}
@@ -92,9 +86,9 @@ export default ({
         keyframes={convertToRIAKeyframes(
           ((taskOutput || [])[0] || {}).keyframes
         )}
-        videoName={taskData[0].customId || ""}
+        videoName={samples[0].customId || ""}
         videoTime={0}
-        videoSrc={taskData[0].videoUrl}
+        videoSrc={samples[0].videoUrl}
         onExit={onExit}
       />
     </div>

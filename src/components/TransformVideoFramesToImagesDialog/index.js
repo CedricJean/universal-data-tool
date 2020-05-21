@@ -2,12 +2,9 @@
 
 import React, { useState } from "react"
 import SimpleDialog from "../SimpleDialog"
-import * as colors from "@material-ui/core/colors"
 import { styled } from "@material-ui/core/styles"
 import useElectron from "../../utils/use-electron"
 import ProgressBar from "../ProgressBar"
-import md5 from "js-md5"
-import path from "path"
 import { setIn, without } from "seamless-immutable"
 
 const ErrorBox = styled("pre")({
@@ -26,7 +23,7 @@ const getFfmpegTimeCode = (ms) => {
     .join("")
 }
 
-export default ({ open, onChangeOHA, onClose, oha }) => {
+export default ({ open, onChangeDataset, onClose, dataset }) => {
   const { remote } = useElectron() || {}
   const [progress, changeProgress] = useState(null)
   const [errors, changeErrors] = useState("")
@@ -51,11 +48,11 @@ export default ({ open, onChangeOHA, onClose, oha }) => {
 
             const shell = remote.require("any-shell-escape")
             const { exec } = remote.require("child_process")
-            const newTaskData = [...oha.taskData]
+            const newsamples = [...dataset.samples]
             let transformsPerformed = 0
 
-            for (let i = 0; i < oha.taskData.length; i++) {
-              const td = oha.taskData[i]
+            for (let i = 0; i < dataset.samples.length; i++) {
+              const td = dataset.samples[i]
               if (td.videoUrl && td.videoFrameAt !== undefined) {
                 if (td.videoUrl.startsWith("http")) {
                   errors += `Sample ${i} has a url to a video, videos must be downloaded before extracting frames.`
@@ -77,22 +74,21 @@ export default ({ open, onChangeOHA, onClose, oha }) => {
                   1,
                   imageOutputPath,
                 ])
-                console.log("running:", ffmpegCommand)
                 await new Promise((resolve, reject) => {
                   exec(ffmpegCommand, { timeout: 5000 }, (err) => {
                     if (err) return reject(err)
                     resolve()
                   })
                 })
-                newTaskData[i] = {
+                newsamples[i] = {
                   ...without(
-                    without(oha.taskData[i], "videoUrl"),
+                    without(dataset.samples[i], "videoUrl"),
                     "videoFrameAt"
                   ),
                   imageUrl: `file://${imageOutputPath}`,
                 }
               }
-              changeProgress((i / oha.taskData.length) * 100)
+              changeProgress((i / dataset.samples.length) * 100)
             }
 
             if (transformsPerformed === 0) {
@@ -100,7 +96,7 @@ export default ({ open, onChangeOHA, onClose, oha }) => {
                 "No transforms were performed, do all of your video samples have frames specified? You may need to convert the keyframes to samples."
             }
 
-            onChangeOHA(setIn(oha, ["taskData"], newTaskData))
+            onChangeDataset(setIn(dataset, ["samples"], newsamples))
 
             changeErrors(errors)
             changeProgress(100)

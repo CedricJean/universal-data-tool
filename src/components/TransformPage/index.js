@@ -1,28 +1,24 @@
 // @flow weak
 
-import React, { useState, useContext, createContext } from "react"
+import React, { useState, createContext } from "react"
 import MuiButton from "@material-ui/core/Button"
 import { styled } from "@material-ui/core/styles"
-import AssignmentReturnedIcon from "@material-ui/icons/AssignmentReturned"
-import CreateNewFolderIcon from "@material-ui/icons/CreateNewFolder"
 import ImageIcon from "@material-ui/icons/Image"
 import ArrowForwardIcon from "@material-ui/icons/ArrowForward"
-import TextFieldsIcon from "@material-ui/icons/TextFields"
-import PetsIcon from "@material-ui/icons/Pets"
 import * as colors from "@material-ui/core/colors"
-import PasteUrlsDialog from "../PasteUrlsDialog"
-import ImportTextSnippetsDialog from "../ImportTextSnippetsDialog"
 import useIsDesktop from "../../utils/use-is-desktop"
-import useElectron from "../../utils/use-electron"
 import classnames from "classnames"
-import { setIn } from "seamless-immutable"
-import useEventCallback from "use-event-callback"
 import OndemandVideoIcon from "@material-ui/icons/OndemandVideo"
 import TransformVideoKeyframesDialog from "../TransformVideoKeyframesDialog"
 import DownloadURLsDialog from "../DownloadURLsDialog"
 import GetAppIcon from "@material-ui/icons/GetApp"
 import CollectionsIcon from "@material-ui/icons/Collections"
 import TransformVideoFramesToImagesDialog from "../TransformVideoFramesToImagesDialog"
+import usePosthog from "../../utils/use-posthog"
+import TransformLocalFilesToWebURLs from "../TransformLocalFilesToWebURLs"
+
+import ComputerIcon from "@material-ui/icons/Computer"
+import LanguageIcon from "@material-ui/icons/Language"
 
 const ButtonBase = styled(MuiButton)({
   width: 240,
@@ -56,6 +52,7 @@ const SelectDialogContext = createContext()
 
 const Button = ({ Icon1, Icon2, desktopOnly, children, dialog, disabled }) => {
   const isDesktop = useIsDesktop()
+  const posthog = usePosthog()
   disabled =
     disabled === undefined ? (desktopOnly ? !isDesktop : false) : disabled
   return (
@@ -63,7 +60,12 @@ const Button = ({ Icon1, Icon2, desktopOnly, children, dialog, disabled }) => {
       {({ onChangeDialog }) => {
         return (
           <ButtonBase
-            onClick={() => onChangeDialog(dialog)}
+            onClick={() => {
+              onChangeDialog(dialog)
+              posthog.capture("transform_button_clicked", {
+                transform_button: dialog,
+              })
+            }}
             className={classnames({ disabled })}
             variant="outlined"
             disabled={disabled}
@@ -94,12 +96,12 @@ const Button = ({ Icon1, Icon2, desktopOnly, children, dialog, disabled }) => {
   )
 }
 
-export default ({ oha, onChangeOHA }) => {
+export default ({ dataset, onChangeDataset }) => {
   const [selectedDialog, changeDialog] = useState()
-  const electron = useElectron()
   const onChangeDialog = async (dialog) => {
     switch (dialog) {
       case "convert-keyframes-to-samples": {
+        break
       }
       default: {
         return changeDialog(dialog)
@@ -111,12 +113,20 @@ export default ({ oha, onChangeOHA }) => {
     <SelectDialogContext.Provider value={{ onChangeDialog }}>
       <div>
         <Button
-          disabled={oha.interface.type !== "video_segmentation"}
+          disabled={dataset.interface.type !== "video_segmentation"}
           dialog="convert-keyframes-to-samples"
           Icon1={OndemandVideoIcon}
           Icon2={CollectionsIcon}
         >
           Convert Video Keyframes to Samples
+        </Button>
+        <Button
+          desktopOnly
+          dialog="convert-local-files-to-web-urls"
+          Icon1={ComputerIcon}
+          Icon2={LanguageIcon}
+        >
+          Transform Local Files to Web URLs
         </Button>
         <Button desktopOnly dialog="download-urls" Icon1={GetAppIcon}>
           Download URLs
@@ -132,25 +142,32 @@ export default ({ oha, onChangeOHA }) => {
         <TransformVideoKeyframesDialog
           open={selectedDialog === "convert-keyframes-to-samples"}
           onClose={closeDialog}
-          oha={oha}
-          onChangeOHA={(...args) => {
-            onChangeOHA(...args)
+          dataset={dataset}
+          onChangeDataset={(...args) => {
+            onChangeDataset(...args)
             closeDialog()
           }}
         />
         <DownloadURLsDialog
           open={selectedDialog === "download-urls"}
           onClose={closeDialog}
-          oha={oha}
+          dataset={dataset}
           desktopOnly
-          onChangeOHA={onChangeOHA}
+          onChangeDataset={onChangeDataset}
         ></DownloadURLsDialog>
+        <TransformLocalFilesToWebURLs
+          dataset={dataset}
+          onClose={closeDialog}
+          onChangeDataset={onChangeDataset}
+          desktopOnly
+          open={selectedDialog === "convert-local-files-to-web-urls"}
+        ></TransformLocalFilesToWebURLs>
         <TransformVideoFramesToImagesDialog
           open={selectedDialog === "convert-video-frames-to-images"}
           onClose={closeDialog}
-          oha={oha}
+          dataset={dataset}
           desktopOnly
-          onChangeOHA={onChangeOHA}
+          onChangeDataset={onChangeDataset}
         ></TransformVideoFramesToImagesDialog>
       </div>
     </SelectDialogContext.Provider>

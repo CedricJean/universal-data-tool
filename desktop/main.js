@@ -1,11 +1,10 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu } = require("electron")
+const { app, BrowserWindow, Menu, shell } = require("electron")
 const path = require("path")
 const menuTemplate = require("./menu-template")
 const { format: formatUrl } = require("url")
 
 function createWindow() {
-  console.log("Creating window...")
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -22,7 +21,8 @@ function createWindow() {
 
   // and load the index.html of the app.
   if (process.env.USE_DEV_SERVER) {
-    mainWindow.loadURL("http://localhost:6001")
+    // USAGE: DEV_SERVER_URL=https://e2a6dfb7.ngrok.io npm run start:desktop:dev
+    mainWindow.loadURL(process.env.DEV_SERVER_URL || "http://localhost:6001")
   } else {
     mainWindow.loadURL(
       formatUrl({
@@ -32,6 +32,17 @@ function createWindow() {
       })
     )
   }
+
+  // Don't open links in electron browser
+  mainWindow.webContents.on("new-window", function (event, url) {
+    event.preventDefault()
+    shell.openExternal(url)
+  })
+
+  mainWindow.webContents.on("will-navigate", function (event, url) {
+    event.preventDefault()
+    shell.openExternal(url)
+  })
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()

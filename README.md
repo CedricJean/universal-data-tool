@@ -20,6 +20,7 @@ The Universal Data Tool is a web/desktop app for editing and annotating images, 
 - Support for Images, Videos, PDFs, Text, Audio Transcription and many other formats
 - Can be [easily integrated into a React application](https://github.com/UniversalDataTool/universal-data-tool/wiki/Usage-with-React)
 - Annotate images or videos with classifications, tags, bounding boxes, polygons and points
+- Import data from Google Drive, Youtube, CSV, Clipboard and more
 - Annotate NLP datasets with Named Entity Recognition (NER), classification and Part of Speech (PoS) tagging.
 - Easily [load into pandas](https://github.com/UniversalDataTool/universal-data-tool/wiki/Usage-with-Pandas) or [use with fast.ai](https://github.com/UniversalDataTool/universal-data-tool/wiki/Usage-with-Fast.ai)
 
@@ -75,3 +76,27 @@ libraries are used...
 - [material-survey](https://github.com/collegeai/material-survey) for data entry.
 - [react-image-annotate](https://github.com/workaroundonline/react-image-annotate) for image annotation.
 - [react-nlp-annotate](https://github.com/workaroundonline/react-nlp-annotate) for entity recognition and NLP tasks.
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://twitter.com/seveibar"><img src="https://avatars2.githubusercontent.com/u/1910070?v=4" width="100px;" alt=""/><br /><sub><b>Severin Ibarluzea</b></sub></a><br /><a href="https://github.com/UniversalDataTool/universal-data-tool/commits?author=seveibar" title="Code">💻</a> <a href="https://github.com/UniversalDataTool/universal-data-tool/commits?author=seveibar" title="Documentation">📖</a> <a href="https://github.com/UniversalDataTool/universal-data-tool/pulls?q=is%3Apr+reviewed-by%3Aseveibar" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="http://puskuruk.github.io"><img src="https://avatars2.githubusercontent.com/u/22892227?v=4" width="100px;" alt=""/><br /><sub><b>Puskuruk</b></sub></a><br /><a href="https://github.com/UniversalDataTool/universal-data-tool/commits?author=puskuruk" title="Code">💻</a> <a href="https://github.com/UniversalDataTool/universal-data-tool/pulls?q=is%3Apr+reviewed-by%3Apuskuruk" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/CedricJean"><img src="https://avatars1.githubusercontent.com/u/63243979?v=4" width="100px;" alt=""/><br /><sub><b>CedricJean</b></sub></a><br /><a href="https://github.com/UniversalDataTool/universal-data-tool/commits?author=CedricJean" title="Code">💻</a></td>
+    <td align="center"><a href="http://berupon.hatenablog.com/"><img src="https://avatars1.githubusercontent.com/u/1131125?v=4" width="100px;" alt=""/><br /><sub><b>beru</b></sub></a><br /><a href="https://github.com/UniversalDataTool/universal-data-tool/commits?author=beru" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Ownmarc"><img src="https://avatars0.githubusercontent.com/u/24617457?v=4" width="100px;" alt=""/><br /><sub><b>Marc</b></sub></a><br /><a href="https://github.com/UniversalDataTool/universal-data-tool/commits?author=Ownmarc" title="Code">💻</a> <a href="https://github.com/UniversalDataTool/universal-data-tool/commits?author=Ownmarc" title="Documentation">📖</a></td>
+  </tr>
+</table>
+
+<!-- markdownlint-enable -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

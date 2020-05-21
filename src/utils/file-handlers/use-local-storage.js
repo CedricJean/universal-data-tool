@@ -1,17 +1,13 @@
 // @flow
-
+import { useRef, useEffect } from "react"
 import { useLocalStorage } from "react-use"
-import { useEffect } from "react"
-
+import isEmpty from "lodash/isEmpty"
 export default (file, changeFile) => {
   let [recentItems, changeRecentItems] = useLocalStorage("recentItems", [])
 
   if (!recentItems) recentItems = []
-
   useEffect(() => {
-    if (!file) return
-    if (!file.fileName || file.fileName === "unnamed") return
-    if (file.mode !== "local-storage" && file.mode !== "filesystem") return
+    if (!file || file.fileName === "unnamed") return
     if (recentItems.map((item) => item.id).includes(file.id)) {
       changeRecentItems(
         recentItems.map((ri) => (ri.id === file.id ? file : ri))
@@ -19,7 +15,6 @@ export default (file, changeFile) => {
     } else {
       changeRecentItems([file].concat(recentItems).slice(0, 3))
     }
-  }, [file])
-
+  }, [file, changeRecentItems, recentItems])
   return { recentItems, changeRecentItems }
 }

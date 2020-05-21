@@ -11,10 +11,10 @@ storiesOf("ImportPage", module)
   .add("Basic", () => (
     <ImportPage
       isDesktop={false}
-      oha={{
+      dataset={{
         interface: {
           type: "image_segmentation",
-          availableLabels: ["valid", "invalid"],
+          labels: ["valid", "invalid"],
           regionTypesAllowed: [
             "bounding-box",
             "polygon",
@@ -23,7 +23,7 @@ storiesOf("ImportPage", module)
             // "pixel-mask"
           ],
         },
-        taskData: [
+        samples: [
           {
             imageUrl:
               "https://s3.amazonaws.com/asset.workaround.online/example-jobs/sticky-notes/image1.jpg",
@@ -34,16 +34,16 @@ storiesOf("ImportPage", module)
           },
         ],
       }}
-      onChangeOHA={action("onChangeOHA")}
+      onChangeDataset={action("onChangeDataset")}
     />
   ))
   .add("Basic Desktop", () => (
     <ImportPage
       isDesktop
-      oha={{
+      dataset={{
         interface: {
           type: "image_segmentation",
-          availableLabels: ["valid", "invalid"],
+          labels: ["valid", "invalid"],
           regionTypesAllowed: [
             "bounding-box",
             "polygon",
@@ -52,7 +52,7 @@ storiesOf("ImportPage", module)
             // "pixel-mask"
           ],
         },
-        taskData: [
+        samples: [
           {
             imageUrl:
               "https://s3.amazonaws.com/asset.workaround.online/example-jobs/sticky-notes/image1.jpg",
@@ -63,6 +63,6 @@ storiesOf("ImportPage", module)
           },
         ],
       }}
-      onChangeOHA={action("onChangeOHA")}
+      onChangeDataset={action("onChangeDataset")}
     />
   ))

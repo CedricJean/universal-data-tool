@@ -8,26 +8,45 @@ import range from "lodash/range"
 import * as colors from "@material-ui/core/colors"
 import classNames from "classnames"
 import TablePagination from "@material-ui/core/TablePagination"
+import Box from "@material-ui/core/Box"
 import getBrushColorPalette from "../../utils/get-brush-color-palette"
 
 const Container = styled("div")({
   flexWrap: "wrap",
+  height: "100%",
+  boxSizing: "border-box",
+  display: "flex",
+  flexDirection: "column",
+})
+const EmptyState = styled("div")({
+  fontSize: 24,
+  color: colors.grey[500],
+  padding: 30,
+  textAlign: "center",
 })
 const SampleDiv = styled("div")(({ color }) => ({
+  color: "#fff",
+  fontVariantNumeric: "tabular-nums",
   margin: 4,
   padding: 4,
   backgroundColor: color[500],
   display: "inline-flex",
-  fontSize: 11,
+  fontSize: 14,
+  fontWeight: 500,
   textAlign: "center",
   justifyContent: "center",
   minWidth: "3em",
   borderRadius: 3,
   cursor: "pointer",
   userSelect: "none",
-  transition: "box-shadow 200ms ease, transform 200ms ease",
-  color: color.isFaded ? "#000" : "#fff",
+  transition:
+    "box-shadow 200ms ease, transform 200ms ease, background-color 200ms ease",
+  "&:hover": {
+    backgroundColor: color[700],
+  },
+  // color: color.isFaded ? "#000" : "#fff",
   "&.selected": {
+    backgroundColor: color[700],
     boxShadow: `0px 0px 2px 1px ${color["A200"]}`,
     transform: "scale(1.05,1.05)",
   },
@@ -67,7 +86,7 @@ const Sample = memo(
   }
 )
 
-export default ({ count, completed = [], taskData, onClick }) => {
+export default ({ count, completed = [], samples, onClick }) => {
   const [samplesPerPage, changeSamplesPerPage] = useLocalStorage(
     "samplesPerPage",
     100
@@ -78,7 +97,7 @@ export default ({ count, completed = [], taskData, onClick }) => {
     if (sampleOffset > count) {
       changeSampleOffset(0)
     }
-  }, [])
+  }, [changeSampleOffset, sampleOffset, count])
 
   const [selectRange, changeSelectRange] = useReducer((state, newValue) => {
     if (newValue === null) return null
@@ -96,7 +115,7 @@ export default ({ count, completed = [], taskData, onClick }) => {
   const moveSelectRange = useCallback((index) => changeSelectRange(index), [
     changeSelectRange,
   ])
-  const endSelectRange = useCallback(() => {}, [changeSelectRange])
+  const endSelectRange = useCallback(() => {}, [])
   const checkAndNullifySelectRange = useCallback(
     (e) => {
       if (e.buttons !== 1) {
@@ -112,23 +131,29 @@ export default ({ count, completed = [], taskData, onClick }) => {
       onMouseUp={checkAndNullifySelectRange}
       onMouseEnter={checkAndNullifySelectRange}
     >
-      {range(sampleOffset, Math.min(count, sampleOffset + samplesPerPage)).map(
-        (i) => (
+      {count === 0 && (
+        <EmptyState>
+          No samples, try using "Import Toy Dataset" in Samples > Import
+        </EmptyState>
+      )}
+      <Box flexGrow={1}>
+        {range(
+          sampleOffset,
+          Math.min(count, sampleOffset + samplesPerPage)
+        ).map((i) => (
           <Sample
             onClick={onClickMemo}
             key={i}
             index={i}
             completed={completed[i]}
-            brush={
-              completed[i] ? taskData[i].brush || "complete" : "incomplete"
-            }
+            brush={completed[i] ? samples[i].brush || "complete" : "incomplete"}
             selected={selectRange && i >= selectRange[0] && i < selectRange[1]}
             onMouseDown={startSelectRange}
             onMouseEnter={moveSelectRange}
             onMouseUp={endSelectRange}
           />
-        )
-      )}
+        ))}
+      </Box>
       <TablePagination
         rowsPerPageOptions={[100, 250, 500, 1000, 2000, 10000]}
         component="div"

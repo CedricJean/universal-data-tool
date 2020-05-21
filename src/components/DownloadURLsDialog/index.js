@@ -2,7 +2,6 @@
 
 import React, { useState } from "react"
 import SimpleDialog from "../SimpleDialog"
-import * as colors from "@material-ui/core/colors"
 import { styled } from "@material-ui/core/styles"
 import useElectron from "../../utils/use-electron"
 import ProgressBar from "../ProgressBar"
@@ -20,7 +19,7 @@ function downloadFile(urlToDownload, directoryPath, remote) {
   const fileName = `sample_${md5(urlToDownload).slice(0, 6)}__${urlToDownload
     .split("/")
     .slice(-1)[0]
-    .replace(/[^a-zA-Z0-9_\-\.]/g, "")}`
+    .replace(/[^a-zA-Z0-9_\-.]/g, "")}`
   const downloadPath = path.join(directoryPath, fileName)
   if (remote.require("fs").existsSync(downloadPath)) return downloadPath
   return new Promise((resolve, reject) => {
@@ -38,7 +37,7 @@ function downloadFile(urlToDownload, directoryPath, remote) {
   })
 }
 
-export default ({ open, onChangeOHA, onClose, oha }) => {
+export default ({ open, onChangeDataset, onClose, dataset }) => {
   const { remote } = useElectron() || {}
   const [progress, changeProgress] = useState(null)
   const [errors, changeErrors] = useState("")
@@ -70,13 +69,13 @@ export default ({ open, onChangeOHA, onClose, oha }) => {
               return
             }
 
-            const newTaskData = [...oha.taskData]
+            const newSamples = [...dataset.samples]
             let errors = ""
 
             // Iterate over each task datum and download the url, then convert
             // the path to a filesystem path
-            for (let i = 0; i < oha.taskData.length; i++) {
-              const td = oha.taskData[i]
+            for (let i = 0; i < dataset.samples.length; i++) {
+              const td = dataset.samples[i]
               let urlKey
               if (td.imageUrl) urlKey = "imageUrl"
               if (td.videoUrl) urlKey = "videoUrl"
@@ -88,17 +87,17 @@ export default ({ open, onChangeOHA, onClose, oha }) => {
                   directoryPath,
                   remote
                 )
-                newTaskData[i] = {
+                newSamples[i] = {
                   ...td,
                   [urlKey]: `file://${pathToFile}`,
                 }
               } catch (e) {
-                errors += `Skipping sample, error downloading taskData[${i}] (${urlToDownload}): ${e.toString()} \n`
+                errors += `Skipping sample, error downloading samples[${i}] (${urlToDownload}): ${e.toString()} \n`
               }
-              changeProgress((i / oha.taskData.length) * 100)
+              changeProgress((i / dataset.samples.length) * 100)
             }
 
-            onChangeOHA(setIn(oha, ["taskData"], newTaskData))
+            onChangeDataset(setIn(dataset, ["samples"], newSamples))
 
             changeErrors(errors)
             changeProgress(100)

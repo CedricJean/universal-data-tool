@@ -1,34 +1,20 @@
 // @flow
-import React, { useState, useMemo, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { HeaderContext } from "../Header"
 import StartingPage from "../StartingPage"
-import OHAEditor from "../OHAEditor"
-import { makeStyles } from "@material-ui/core/styles"
+import DatasetEditor from "../DatasetEditor"
 import ErrorToasts from "../ErrorToasts"
-import { useToasts } from "../Toasts"
 import useErrors from "../../utils/use-errors.js"
-import useLocalStorage from "../../utils/use-local-storage.js"
 import useElectron from "../../utils/use-electron.js"
 import templates from "../StartingPage/templates"
 import useEventCallback from "use-event-callback"
 import { setIn } from "seamless-immutable"
 import toUDTCSV from "../../utils/to-udt-csv.js"
-
 import useFileHandler from "../../utils/file-handlers"
-
-const useStyles = makeStyles({
-  empty: {
-    textAlign: "center",
-    padding: 100,
-    color: "#666",
-    fontSize: 28,
-  },
-})
 
 const randomId = () => Math.random().toString().split(".")[1]
 
 export default () => {
-  const c = useStyles()
   const {
     file,
     changeFile,
@@ -40,15 +26,14 @@ export default () => {
   } = useFileHandler()
 
   const [selectedBrush, setSelectedBrush] = useState("complete")
-  const [errors, addError] = useErrors()
-  const { addToast } = useToasts()
+  const [errors] = useErrors()
 
   const { remote, ipcRenderer } = useElectron()
 
   const onCreateTemplate = useEventCallback((template) => {
     changeFile({
       fileName: "unnamed",
-      content: template.oha,
+      content: template.dataset,
       id: randomId(),
       mode: "filesystem",
     })
@@ -70,6 +55,7 @@ export default () => {
       let { cancelled, filePath } = await remote.dialog.showSaveDialog({
         filters: [{ name: ".udt.csv", extensions: ["udt.csv"] }],
       })
+      if (cancelled) return
       filePath =
         !filePath || filePath.endsWith(".csv")
           ? filePath
@@ -79,9 +65,7 @@ export default () => {
         .require("fs")
         .promises.writeFile(filePath, toUDTCSV(file.content))
     }
-    const onOpenFileFromToolbar = (e, file) => (
-      console.log(file), openFile(file)
-    )
+    const onOpenFileFromToolbar = (e, file) => openFile(file)
 
     ipcRenderer.on("open-welcome-page", onOpenWelcomePage)
     ipcRenderer.on("new-file", onNewFile)
@@ -97,7 +81,40 @@ export default () => {
       ipcRenderer.removeListener("save-file-as", saveFileAs)
       ipcRenderer.removeListener("export-to-csv", exportToCSV)
     }
-  }, [file])
+  }, [
+    file,
+    changeFile,
+    ipcRenderer,
+    openFile,
+    onCreateTemplate,
+    remote,
+    saveFile,
+  ])
+
+  const inSession = file && file.mode === "server"
+  const [sessionBoxOpen, changeSessionBoxOpen] = useState(false)
+
+  const onJoinSession = useEventCallback(async (sessionName) => {
+    await openUrl(sessionName)
+  })
+
+  const onLeaveSession = useEventCallback(() =>
+    changeFile({
+      ...file,
+      mode: "local-storage",
+      fileName: file.fileName || `copy_of_${file.id}`,
+    })
+  )
+
+  const collaborateError = (((file || {}).content || {}).samples || []).some(
+    (sample) =>
+      [sample.imageUrl, sample.videoUrl, sample.pdfUrl]
+        .filter(Boolean)
+        .map((a) => a.includes("file://"))
+        .some(Boolean)
+  )
+    ? "Some URLs (links) in this file are connected to files on your computer. Use the Samples > Transform > Transform Files to Web URLs to upload these files, then collaboration will be available."
+    : null
 
   return (
     <>
@@ -106,13 +123,27 @@ export default () => {
           recentItems,
           onClickTemplate: onCreateTemplate,
           onClickHome,
-          title: file ? file.fileName : null,
+          title: file
+            ? file.mode !== "server"
+              ? file.fileName
+              : file.url
+            : "unnamed",
           fileOpen: Boolean(file),
           onOpenRecentItem: openRecentItem,
           isDesktop: true,
           onOpenFile: openFile,
           selectedBrush,
           onChangeSelectedBrush: setSelectedBrush,
+
+          // collaboration session
+          inSession,
+          sessionBoxOpen,
+          changeSessionBoxOpen,
+          collaborateError,
+          onJoinSession,
+          onLeaveSession,
+          onCreateSession: makeSession,
+          isWelcomePage: !file,
         }}
       >
         {!file ? (
@@ -124,15 +155,16 @@ export default () => {
             onOpenRecentItem={openRecentItem}
           />
         ) : (
-          <OHAEditor
+          <DatasetEditor
             key={file.id}
             {...file}
+            inSession={inSession}
             selectedBrush={selectedBrush}
-            oha={file.content}
+            dataset={file.content}
             onChangeFileName={(newName) => {
               changeFile(setIn(file, ["fileName"], newName))
             }}
-            onChangeOHA={(newOHA) => {
+            onChangeDataset={(newOHA) => {
               changeFile(setIn(file, ["content"], newOHA))
             }}
           />

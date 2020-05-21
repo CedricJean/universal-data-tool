@@ -1,11 +1,5 @@
 // @flow
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useReducer,
-} from "react"
+import React, { createContext, useContext, useEffect, useReducer } from "react"
 import { makeStyles } from "@material-ui/core/styles"
 import * as colors from "@material-ui/core/colors"
 import Collapse from "@material-ui/core/Collapse"
@@ -42,7 +36,7 @@ const useStyles = makeStyles({
 
 const REFRESH_INTERVAL = 100
 
-const ToastContext = createContext()
+const ToastContext = createContext({})
 
 export const useToasts = () => {
   const { addToast } = useContext(ToastContext)

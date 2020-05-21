@@ -11,7 +11,6 @@ import ListSubheader from "@material-ui/core/ListSubheader"
 import { GoMarkGithub } from "react-icons/go"
 import { makeStyles } from "@material-ui/core/styles"
 import HomeIcon from "@material-ui/icons/Home"
-import { IconContext } from "react-icons"
 import { FaTrashAlt } from "react-icons/fa"
 import templates from "../StartingPage/templates"
 import * as colors from "@material-ui/core/colors"
@@ -33,9 +32,18 @@ export default ({
   const c = useStyles()
   let classTrashCan = ""
 
-  const onDrop = useCallback((acceptedFiles) => {
-    onOpenFile(acceptedFiles[0])
-  }, [])
+  const onDrop = useCallback(
+    (acceptedFiles) => {
+      onOpenFile(acceptedFiles[0])
+    },
+    [onOpenFile]
+  )
+
+  function onDeleteFile(i) {
+    changeRecentItems(
+      recentItems.filter((oneRecentFile) => oneRecentFile.id !== i)
+    )
+  }
 
   function onDeleteFile(i) {
     changeRecentItems(
@@ -100,6 +108,7 @@ export default ({
         <ListSubheader>Create From Template</ListSubheader>
         {templates.map((template) => (
           <ListItem
+            button
             key={template.name}
             onClick={() => onClickTemplate(template)}
           >

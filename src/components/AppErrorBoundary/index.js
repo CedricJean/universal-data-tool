@@ -6,11 +6,7 @@ import * as colors from "@material-ui/core/colors"
 import { detect } from "detect-browser"
 import Button from "@material-ui/core/Button"
 import LaunchIcon from "@material-ui/icons/Launch"
-import * as Sentry from "@sentry/browser"
-
-Sentry.init({
-  dsn: "https://bc19fbac222243f08f0abaf6d66f2034@sentry.io/5182632",
-})
+import Sentry from "../../utils/sentry.js"
 
 const Container = styled("div")({
   width: "100vw",
@@ -76,7 +72,7 @@ class ErrorBoundary extends React.Component {
       // You can render any custom fallback UI
       return (
         <Container>
-          <div className="title">Something has gone amiss</div>
+          <div className="title">An error has occurred</div>
           <div className="subtitle">All the details are below:</div>
           <div className="info">
             <textarea>{this.state.errorDetails}</textarea>

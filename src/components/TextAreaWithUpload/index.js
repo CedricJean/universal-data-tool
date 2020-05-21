@@ -22,15 +22,10 @@ const emptyFunc = () => null
 
 export default ({ content, onChangeContent, placeholder }) => {
   const onDrop = useEventCallback((acceptedFiles) => {
-    const { name: fileName } = acceptedFiles[0]
     const reader = new FileReader()
     reader.onload = (e) => {
       const fileContent = e.target.result
-      if (fileName.endsWith("csv") || fileName.endsWith("CSV")) {
-        onChangeContent(fileContent.replace(",", "\n"))
-      } else {
-        onChangeContent(fileContent)
-      }
+      onChangeContent(fileContent)
     }
     reader.readAsText(acceptedFiles[0])
   })

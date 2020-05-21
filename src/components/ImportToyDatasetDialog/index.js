@@ -27,7 +27,7 @@ async function getSamples(dataset) {
 
   return await fetch(datasetUrl)
     .then((r) => r.json())
-    .then((r) => r.taskData)
+    .then((r) => r.samples || r.taskData)
 }
 
 const StyledButton = styled(Button)({})
@@ -53,6 +53,7 @@ const ImportToyDatasetDialog = ({ onClose, onAddSamples, open }) => {
                 <TableCell>{dataset.size}</TableCell>
                 <TableCell>
                   <StyledButton
+                    data-import-toy-dataset-name={dataset.name}
                     onClick={async () => {
                       onAddSamples(await getSamples(dataset))
                     }}

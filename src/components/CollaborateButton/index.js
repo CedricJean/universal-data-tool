@@ -1,8 +1,7 @@
 // @flow
 
-import React, { useState, useMemo, useRef, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useLocalStorage } from "react-use"
-import { createPortal } from "react-dom"
 import IconButton from "@material-ui/core/IconButton"
 import PeopleIcon from "@material-ui/icons/People"
 import ArrowForwardIcon from "@material-ui/icons/ArrowForward"
@@ -73,6 +72,11 @@ const PopupBox = styled("div")({
     pointerEvents: "none",
   },
 })
+const ErrorText = styled("div")({
+  color: colors.red[500],
+  padding: 8,
+  fontSize: 14,
+})
 
 const CreateNewButton = styled(Button)({
   marginTop: 16,
@@ -96,6 +100,7 @@ const ExitButton = styled(Button)({
 export default ({
   fileOpen = false,
   inSession = false,
+  error,
   onJoinSession,
   onCreateSession,
   onLeaveSession,
@@ -150,14 +155,15 @@ export default ({
                 ),
               }}
             />
+            {error && <ErrorText>{error}</ErrorText>}
             <CreateNewButton
               fullWidth
+              disabled={!fileOpen || loadingSession || error}
               onClick={() => {
                 posthog.capture("create_collaborative_session")
                 onCreateSession()
                 changeLoadingSession(true)
               }}
-              disabled={!fileOpen || loadingSession}
             >
               {loadingSession ? (
                 <CircularProgress className="icon" size={24} />
